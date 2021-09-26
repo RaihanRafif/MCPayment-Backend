@@ -38,9 +38,16 @@ Transaction.init(
       allowNull: true,
     },
     createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    deletedAt: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    updatedAt: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

@@ -37,16 +37,16 @@ module.exports = {
         allowNull: true,
       },
       createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
+        type: Sequelize.STRING(20),
+        allowNull: true,
       },
       updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
+        type: Sequelize.STRING(20),
+        allowNull: true,
       },
       deletedAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
+        type: Sequelize.STRING(20),
+        allowNull: true,
       },
     });
   },

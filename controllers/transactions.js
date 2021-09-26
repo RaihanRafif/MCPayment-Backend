@@ -5,6 +5,12 @@ exports.addTransaction = async (req, res, next) => {
     const { amount, title, status, description, category } = req.body;
     let saldo = 0;
 
+    let dateTime = require("node-datetime");
+    let dt = dateTime.create();
+    let formatted = dt.format("Y-m-d H:M:S");
+
+    const createdAt = formatted;
+
     const dateLastTransaction = await Transaction.findAll({
       raw: true,
       attributes: [[sequelize.fn("max", sequelize.col("createdAt")), "max"]],
@@ -30,6 +36,8 @@ exports.addTransaction = async (req, res, next) => {
       throw new Error("Data is not complete");
     }
 
+    let balanceUpdated = saldo;
+
     await Transaction.create({
       amount,
       status,
@@ -37,7 +45,8 @@ exports.addTransaction = async (req, res, next) => {
       category,
       title,
       saldo,
-      balanceUpdated: saldo,
+      balanceUpdated,
+      createdAt,
     });
 
     const sumNewSaldo = await Transaction.findAll({
@@ -62,7 +71,7 @@ exports.addTransaction = async (req, res, next) => {
       status: "success",
       code: 201,
       message: "Success add new transaction",
-      data: saldo,
+      data: balanceUpdated,
     });
   } catch (error) {
     console.log(error);
@@ -73,25 +82,39 @@ exports.addTransaction = async (req, res, next) => {
 exports.getAllTransactions = async (req, res, next) => {
   try {
     const transaction = await Transaction.findAll();
-
-    const sumSaldo = await Transaction.findAll({
-      raw: true,
-      attributes: ["amount"],
+    const getBalance = await Transaction.findOne({
+      order: ["balanceUpdated"],
     });
-
-    if (sumSaldo.length != 0) {
-      var sumValues = sumSaldo
-        .map((item) => item.amount)
-        .reduce((prev, next) => prev + next);
-    }
 
     return res.status(200).json({
       status: "success",
       code: 200,
       message: "Success get all Transaction",
       data: {
-        balance: sumValues,
+        balance: getBalance.saldo,
         transaction,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.getTransactionById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const transaction = await Transaction.findByPk(id);
+
+    if (!transaction) {
+      throw new Error("Transaction with this id not found.");
+    }
+
+    return res.status(200).json({
+      status: "success",
+      code: 200,
+      message: "Success delete transaction",
+      data: {
+        Balance: newBalance,
       },
     });
   } catch (error) {
@@ -105,37 +128,52 @@ exports.updateTransaction = async (req, res, next) => {
     const { title, amount, description, category, status } = req.body;
     const transaction = await Transaction.findByPk(id);
 
+    let dateTime = require("node-datetime");
+    let dt = dateTime.create();
+    let formatted = dt.format("Y-m-d H:M:S");
+
+    const updatedAt = formatted;
+
     if (!transaction) {
       throw new Error("Transaction with this id not found.");
     }
 
+    if (amount) {
+      transaction.amount = amount;
+    }
     if (title) {
       transaction.title = title;
     }
+    if (category) {
+      transaction.category = category;
+    }
+    if (description) {
+      transaction.description = description;
+    }
+    transaction.updatedAt = updatedAt;
 
     await transaction.save();
+
     const sumNewSaldo = await Transaction.findAll({
       raw: true,
       attributes: ["amount"],
     });
     // or use arrow functions
     if (sumNewSaldo.length != 0) {
-      var sumValues = sumNewSaldo
+      let sumValues = sumNewSaldo
         .map((item) => item.amount)
         .reduce((prev, next) => prev + next);
 
       transaction.saldo = sumValues - transaction.amount + amount;
-      console.log(transaction.saldo);
       await transaction.save();
     }
-
-    const newBalance = await Transaction.findAll({
-      raw: true,
-      attributes: ["balanceUpdated"],
-    });
-
-    newBalance.balanceUpdated = sumValues - transaction.amount + amount;
-    newBalance.save();
+    // or use arrow functions
+    await Transaction.update(
+      { balanceUpdated: transaction.saldo },
+      {
+        where: {},
+      }
+    );
 
     return res.status(200).json({
       status: "success",
@@ -158,30 +196,27 @@ exports.deleteTransaction = async (req, res, next) => {
       throw new Error("Transaction with this id not found.");
     }
 
+    const newBalance = transaction.balanceUpdated - transaction.amount;
+
     await Transaction.destroy({
       where: {
         id,
       },
     });
 
-    const newSaldo = await Transaction.findAll({
-      raw: true,
-      attributes: ["amount"],
-    });
-
-    if (newSaldo.length != 0) {
-      var sumValues = newSaldo
-        .map((item) => item.amount)
-        .reduce((prev, next) => prev + next);
-    } else {
-      sumValues = 0;
-    }
-
+    await Transaction.update(
+      { balanceUpdated: newBalance },
+      {
+        where: {},
+      }
+    );
     return res.status(200).json({
       status: "success",
       code: 200,
       message: "Success delete transaction",
-      data: sumValues,
+      data: {
+        Balance: newBalance,
+      },
     });
   } catch (error) {
     return next(error);
