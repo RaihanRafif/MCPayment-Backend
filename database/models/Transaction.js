@@ -13,6 +13,10 @@ Transaction.init(
       type: DataTypes.INTEGER(),
       allowNull: false,
     },
+    balanceUpdated: {
+      type: DataTypes.INTEGER(),
+      allowNull: false,
+    },
     amount: {
       type: DataTypes.INTEGER(),
       allowNull: false,
@@ -36,7 +40,7 @@ Transaction.init(
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: DataTypes.NOW
+      defaultValue: DataTypes.NOW,
     },
   },
   {

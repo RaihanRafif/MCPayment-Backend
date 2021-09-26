@@ -8,6 +8,10 @@ module.exports = {
         default: Sequelize.UUIDV4,
         primaryKey: true,
       },
+      balanceUpdated: {
+        type: Sequelize.INTEGER(),
+        allowNull: false,
+      },
       saldo: {
         type: Sequelize.INTEGER(),
         allowNull: false,
