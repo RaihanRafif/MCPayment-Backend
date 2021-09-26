@@ -33,6 +33,11 @@ Transaction.init(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW
+    },
   },
   {
     modelName: "Transaction",

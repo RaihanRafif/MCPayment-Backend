@@ -3,4 +3,5 @@ const Transaction = require("./Transaction");
 
 module.exports = {
   sequelize,
+  Transaction,
 };
