@@ -25,14 +25,14 @@ exports.addTransaction = async (req, res, next) => {
     }
 
     if (status == "income") {
-      saldo = saldo + amount;
+      saldo = saldo + parseInt(amount);
     } else {
-      saldo = saldo + amount * -1;
+      saldo = saldo + parseInt(amount) * -1;
     }
 
     // transaction ? (saldo = saldo + transaction.saldo) : saldo;
 
-    if (!amount || !title || !status || !description || !category) {
+    if (!amount || !title || !status || !category) {
       throw new Error("Data is not complete");
     }
 
@@ -45,8 +45,8 @@ exports.addTransaction = async (req, res, next) => {
       category,
       title,
       saldo,
-      balanceUpdated,
       createdAt,
+      balanceUpdated,
     });
 
     const sumNewSaldo = await Transaction.findAll({
@@ -61,7 +61,7 @@ exports.addTransaction = async (req, res, next) => {
     }
 
     await Transaction.update(
-      { balanceUpdated: sumValues },
+      { balanceUpdated: saldo },
       {
         where: {},
       }
@@ -91,7 +91,7 @@ exports.getAllTransactions = async (req, res, next) => {
       code: 200,
       message: "Success get all Transaction",
       data: {
-        balance: getBalance.saldo,
+        balance: getBalance.balanceUpdated,
         transaction,
       },
     });
@@ -182,7 +182,6 @@ exports.updateTransaction = async (req, res, next) => {
       data: { balance: transaction.saldo },
     });
   } catch (error) {
-    console.log(error);
     return next(error);
   }
 };
